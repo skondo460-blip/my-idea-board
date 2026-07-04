@@ -1,34 +1,47 @@
+import { db } from "@/lib/db";
+import { categories, ideas, subTasks } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { Workspace } from "@/components/workspace/Workspace";
-import positionsData from "@/data/positions.json";
-import candidatesData from "@/data/candidates.json";
 import workspaceData from "@/data/workspace.json";
-import {
-  departmentsSchema,
-  candidatesSchema,
-  workspaceSchema,
-} from "@/lib/schema";
+import { workspaceSchema } from "@/lib/schema";
+import type { Category, IdeaItem } from "@/lib/schema";
 
-export default function Page() {
-  const deptResult = departmentsSchema.safeParse(positionsData);
-  const candResult = candidatesSchema.safeParse(candidatesData);
+export default async function Page() {
   const wsResult = workspaceSchema.safeParse(workspaceData);
-
-  if (!deptResult.success || !candResult.success || !wsResult.success) {
-    const errors = [
-      !deptResult.success &&
-        `positions.json: ${deptResult.error.issues[0]?.message}`,
-      !candResult.success &&
-        `candidates.json: ${candResult.error.issues[0]?.message}`,
-      !wsResult.success &&
-        `workspace.json: ${wsResult.error.issues[0]?.message}`,
-    ].filter(Boolean);
-    throw new Error(`データの形式が正しくありません:\n${errors.join("\n")}`);
+  if (!wsResult.success) {
+    throw new Error(`workspace.json の形式が正しくありません`);
   }
+
+  // DBからカテゴリ・アイデア・サブタスクを取得
+  const [dbCategories, dbIdeas, dbSubTasks] = await Promise.all([
+    db.select().from(categories).orderBy(categories.createdAt),
+    db.select().from(ideas).orderBy(ideas.createdAt),
+    db.select().from(subTasks).orderBy(subTasks.createdAt),
+  ]);
+
+  // アプリの型に変換
+  const initialCategories: Category[] = dbCategories.map((c) => ({
+    id: c.id,
+    name: c.name,
+  }));
+
+  const initialIdeas: IdeaItem[] = dbIdeas.map((idea) => ({
+    id: idea.id,
+    title: idea.title,
+    memo: idea.memo,
+    categoryId: idea.categoryId ?? null,
+    dueDate: idea.dueDate,
+    status: idea.status as IdeaItem["status"],
+    archived: idea.archived,
+    subTasks: dbSubTasks
+      .filter((s) => s.ideaId === idea.id)
+      .map((s) => ({ id: s.id, title: s.title, done: s.done })),
+  }));
 
   return (
     <Workspace
-      initialDepartments={deptResult.data}
-      initialCandidates={candResult.data}
+      initialCategories={initialCategories}
+      initialIdeas={initialIdeas}
       workspace={wsResult.data}
     />
   );

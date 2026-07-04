@@ -2,11 +2,10 @@
 
 import { Settings } from "lucide-react";
 
-import { type Department } from "@/lib/schema";
+import { type Category } from "@/lib/schema";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -21,21 +20,19 @@ import {
 import { SettingsDialogContent } from "@/components/workspace/SettingsDialog";
 
 type GlobalHeaderProps = {
-  departmentTitle: string;
-  positionTitle: string;
-  candidateName: string;
-  departments: Department[];
-  onAddDepartment: (name: string) => void;
-  onDeleteDepartment: (deptId: string) => void;
+  categoryName: string | null;
+  ideaTitle: string;
+  categories: Category[];
+  onAddCategory: (name: string) => void;
+  onDeleteCategory: (id: string) => void;
 };
 
 export function GlobalHeader({
-  departmentTitle,
-  positionTitle,
-  candidateName,
-  departments,
-  onAddDepartment,
-  onDeleteDepartment,
+  categoryName,
+  ideaTitle,
+  categories,
+  onAddCategory,
+  onDeleteCategory,
 }: GlobalHeaderProps) {
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-3">
@@ -44,17 +41,17 @@ export function GlobalHeader({
         aria-label="パンくず"
       >
         <BreadcrumbList className="flex-nowrap text-[11px]">
-          <BreadcrumbItem className="shrink-0">
-            <BreadcrumbLink>{departmentTitle}</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem className="shrink-0">
-            <BreadcrumbLink>{positionTitle}</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
+          {categoryName && (
+            <>
+              <BreadcrumbItem className="shrink-0">
+                <span className="text-muted-foreground">{categoryName}</span>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </>
+          )}
           <BreadcrumbItem className="min-w-0">
             <BreadcrumbPage className="truncate font-medium">
-              {candidateName}
+              {ideaTitle || "アイデアを選択"}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -81,9 +78,9 @@ export function GlobalHeader({
           <TooltipContent side="bottom">ワークスペース設定</TooltipContent>
         </Tooltip>
         <SettingsDialogContent
-          departments={departments}
-          onAddDepartment={onAddDepartment}
-          onDeleteDepartment={onDeleteDepartment}
+          categories={categories}
+          onAddCategory={onAddCategory}
+          onDeleteCategory={onDeleteCategory}
         />
       </Dialog>
     </header>

@@ -1,56 +1,32 @@
-import { type Profile, type StageKey, type Scorecard } from "@/lib/schema";
-import { STAGE_LABELS } from "@/lib/labels";
+import { type IdeaItem, type StatusKey, type SubTask } from "@/lib/schema";
 
 /**
- * 未作成ステージをクリックした時に Workspace が自動生成するための最小 Scorecard。
- * 全フィールド空（`deriveStageStatus` で pending 派生）。Pane 4 Mode 2 で inline edit すれば
- * 面接官アサインや日程設定ができる。
+ * 新規アイデアアイテムの最小構成を生成するファクトリ。
+ * タイトル以外は空・デフォルト値。
  */
-export function createMinimalScorecard(stage: StageKey): Scorecard {
+export function createMinimalIdeaItem(
+  title: string,
+  status: StatusKey,
+): IdeaItem {
   return {
-    stage,
-    label: STAGE_LABELS[stage],
-    date: "",
-    format: "",
-    interviewer: "",
-    axisScores: {
-      achievements: null,
-      thinkingAbility: null,
-      communication: null,
-      cultureFit: null,
-    },
-    attachments: [],
+    id: `idea-${Date.now()}`,
+    title,
+    memo: "",
+    categoryId: null,
+    dueDate: "",
+    status,
+    subTasks: [],
+    archived: false,
   };
 }
 
 /**
- * c1 / c3 / c4 / c5 / c6 など「c2 以外の候補者」用の最小 Profile 生成ヘルパー。
- * ADR-0014 で Profile が 12 フィールド最小構成になり、avatar 頭文字は
- * 呼び出し側で `name[0]` 派生に統一されたため、`initial` 引数は削除済み。
- * 氏名以外は空文字に揃え、Pane 3 / Pane 4 では空欄として可視化される。
- *
- * `addCandidate`（Workspace 本体）からも参照されるため export する。
+ * 新規サブタスクの最小構成を生成するファクトリ。
  */
-export function createMinimalProfile(name: string): Profile {
+export function createMinimalSubTask(title: string): SubTask {
   return {
-    // プロフィール (3)
-    name,
-    birthday: "",
-    source: "",
-
-    // 連絡先 (3)
-    email: "",
-    phone: "",
-    address: "",
-
-    // 選考状況 (4)
-    recruiter: "",
-    desiredSalaryMin: "",
-    desiredSalaryMax: "",
-    availableStartDate: "",
-
-    // 読み物 (2)
-    careerText: "",
-    motivationFull: "",
+    id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    title,
+    done: false,
   };
 }
